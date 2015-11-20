@@ -6,3 +6,6 @@ decided to abstracted core components in common between quickQuote and [autoEdit
  a collection of `InteractiveVideoComponents` in this repository, to make it easier to quickly get off the ground on similar projects.
  
 Currently this is a work in progress.
+
+
+The [wiki section](https://github.com/pietrop/InteractiveVideoComponents/wiki) of this project is up to date with the description and state of the development of the various components. 
