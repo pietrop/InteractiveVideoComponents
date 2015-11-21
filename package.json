@@ -1,0 +1,26 @@
+{
+  "name": "interactive_video_components",
+  "version": "1.0.0",
+  "description": "A collection of node modules that can be used on video projects, centred a round the idea of hypertranscript as a way into the content of the video",
+  "main": "app.js",
+  "dependencies": {
+    "ejs": "^2.3.4",
+    "express": "^4.13.3",
+    "twit": "2.1.1",
+    "twitter-media": "0.1.0",
+    "fluent-ffmpeg": "~1.7"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pietrop/InteractiveVideoComponents.git"
+  },
+  "author": "Pietro Passarelli",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/pietrop/InteractiveVideoComponents/issues"
+  },
+  "homepage": "https://github.com/pietrop/InteractiveVideoComponents#readme"
+}
