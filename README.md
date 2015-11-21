@@ -1,9 +1,11 @@
+Work in progress
+
 # InteractiveVideoComponents
 A collection of node modules that can be used on video projects, centred a round the idea of hypertranscript as a way into the content of the video.
 
 When refactoring [quickQuote](http://times.github.io/quickQuote/) from ruby on rails to node, adding a live video stream as input and export to twitter video API, 
-decided to abstracted core components in common between quickQuote and [autoEdit](http://pietropassarelli.com/autoEdit.html) into
- a collection of `InteractiveVideoComponents` in this repository, to make it easier to quickly get off the ground on similar projects.
+decided to abstract core components in common between quickQuote and [autoEdit](http://pietropassarelli.com/autoEdit.html) into
+ a collection of `InteractiveVideoComponents` in this repository, to make it easier to quickly get off the ground on similar video/transcription based projects.
  
 Currently this is a work in progress.
 
@@ -15,13 +17,11 @@ The [wiki section](https://github.com/pietrop/InteractiveVideoComponents/wiki) o
 
 Config file is in git ignore, but the following code create one for your project. 
 
-```
+```js
 var config = {};
 
 config.twitter = {};
 config.spokendata={};
-
-
 
 config.spokendata.baseurl 		=	process.env.SPOKENDATA_BASEURL 		|| "";
 config.spokendata.userid 		=	process.env.SPOKENDATA_USERID		|| ;
