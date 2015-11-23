@@ -9,7 +9,6 @@ decided to abstract core components in common between quickQuote and [autoEdit](
  
 Currently this is a work in progress.
 
-
 The [wiki section](https://github.com/pietrop/InteractiveVideoComponents/wiki) of this project is up to date with the description and state of the development of the various components. 
 
 
@@ -40,3 +39,8 @@ module.exports = config;
 ```bash
 npm install
 ```
+
+
+## video file
+
+as the video file is 207.5 mb is not included in the git repo, and the `.gitignore` is set to exclude it from upload. So here is a[link to video file](https://dl.dropboxusercontent.com/u/449999/debate_test.mp4). downlod it and add it to `media/debate_test.mp4` folder.
