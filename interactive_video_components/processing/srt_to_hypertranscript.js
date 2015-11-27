@@ -24,6 +24,8 @@ var open_srt = function(srt){
 // 	return result;
 // }
 
+
+
 var parse_srt_to_json = function(srt){
 	//some check to see if It's a valid srt file?
 	var srt =open_srt(srt,'utf8');
@@ -135,7 +137,8 @@ var convert_hp= function(srt){
 module.exports = {
 		convert : function(srt){
 		return convert_hp(srt);
-	}//,
+	}
+	//,
 	// 	returnSrt: function(srt){
 	// 	return	open_srt(srt);
 	// },

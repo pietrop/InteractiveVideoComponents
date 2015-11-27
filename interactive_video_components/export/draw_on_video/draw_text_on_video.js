@@ -7,10 +7,10 @@
 var ffmpeg = require('fluent-ffmpeg');
 var command = ffmpeg();
 
-var trim_video = function(src){
+var drawtext = function(src){
 	var videoSrc= src;
-	var output = videoSrc.split(".")[0] + ".mp4";//html5
-	var command = ffmpeg(videoSrc).output('output_text.mp4').videoFilters({filter: 'drawtext', options: {fontfile:'LucidaGrande.ttc', text: 'THIS IS TEXT',  fontsize: 20,  fontcolor: 'white',  x: 4,  y: 50,  shadowcolor: 'black',  shadowx: 2,  shadowy: 2}}).on('end', function() {
+	// var output = videoSrc.split(".")[0] + ".mp4";//html5
+	var command = ffmpeg(videoSrc).output('debate_test_trimmed_drawn.mp4').videoFilters({filter: 'drawtext', options: {fontfile:'./LucidaGrande.ttf', text: 'THIS IS TEXT',  fontsize: 20,  fontcolor: 'white',  x: 4,  y: 50,  shadowcolor: 'black',  shadowx: 2,  shadowy: 2}}).on('end', function() {
 	    console.log('Finished writing on video');
 	  })
 	  .run();
@@ -18,8 +18,12 @@ var trim_video = function(src){
 // .audioCodec('libfaac')
 
 
-trim_video('output_test.mov');
+drawtext('debate_test_trimmed.mp4');
+
+// ISSUE: drawtext in ffmpeg unable to install it properly
 
 
-// ffmpeg -i output.mp4 -vf "drawtext=fontfile=./LucidaGrande.ttc: timecode='00\:00\:00\:00': r=25: \
-// x=(w-tw)/2: y=h-(2*lh): fontcolor=white: box=1: boxcolor=0x00000000@1" -an -y output_timecoded.mp4
+// ffmpeg -f dshow -i video="HD Pro Webcam C920" -vf "drawtext=fontfile=arial.ttf:text='%m';fontcolor=white@0.8:x=7:y=460" -vcodec libx264 -vb 2000k -preset ultrafast -f mp4 output.mp4
+// ffmpeg -i debate_test_trimmed.mp4 -vf "drawtext=enable='between(t,0,3)':fontfile=LucidaGrande.ttf: text='Test Text'" -acodec copy output.mp4
+
+// http://einar.slaskete.net/2011/09/05/adding-time-stamp-overlay-to-video-stream-using-ffmpeg/
