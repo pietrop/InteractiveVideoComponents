@@ -1,6 +1,9 @@
 #ignore config file
 config.js
 
+#heroku enviroment variabels
+.env
+
 #ignore all video files
 *.wmv
 *.mpg
@@ -14,8 +17,8 @@ config.js
 *.webm
 
 #ignore subtitles files
-.srt
-.sbv
+*.srt
+*.sbv
 
 # Logs
 logs

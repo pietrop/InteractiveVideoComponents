@@ -29,27 +29,207 @@ function SpokenDataAPI() {
 	this.ENDPOINTS 	= {};
 	this.ENDPOINTS['recordingList']	=	"/recordingList";
 	this.ENDPOINTS['recording']		=	"/recording";
-
+	/**
+	* Base url for api request.
+	*/
 	this.baseApiRequest= this.baseurl +"/"+ this.userid +"/" +this.key;	
 
+	/**
+	* returns a list of all recorings - not actually used
+	*/
 	this.getRecordingsListURL = function (){
 		var url = this.baseApiRequest + this.ENDPOINTS['recordingList']
 		return url;
 	}
 
-	//returns an XML containing a whole bunch of links to that specific recording
+	/**
+	* takes in uid of recording
+	* returns url to retrieve status of recording. 
+	* (and xml with all info associated to recording)
+	*/
 	this.getRecordingURL = function(uid){
 		var url = this.baseApiRequest + this.ENDPOINTS['recording'] +"/"+uid
 		return url;
 	}
 
-	//srt returned as a string
+
+	/** 
+	* Builds the URL To send a new recording to spoken data speech to text api, 
+	* Helper method
+	*/
+	this.addNewRecordingURL = function(recordingURL){
+		var url = this.baseApiRequest + this.ENDPOINTS['recording'] +"/"+"add?url="+recordingURL+"&language=english"	
+		return url;
+	}//addNewRecordingURL
+
+	/** 
+	* To send a new recording to spoken data speech to text api, 
+	* by passing the url of the video file
+	* returns recording uid, which needs to be stored to be able to retrieve the srt of the recording once it has been processed.
+	*/
+	this.addNewRecordingByURL = function(recordingURL, cb){
+		if(arguments.length > 1){
+			// console.log("true");
+			// console.log(arguments[0]);
+			cbisPresent = true;
+		}else{
+			// console.log("false");
+			// console.log(arguments[0]);
+			cbisPresent = false;
+		}
+		
+		var url = this.addNewRecordingURL(recordingURL);
+		// postRequest(postUrlString,fileNameTest);
+		// request.post(url);
+		request.post({url: url}, function(err,httpResponse,body){
+			//TODO: parse XML response return uid of file
+			// console.log(body);
+			 if (cbisPresent){
+
+				  	
+				  	parseString(body, function (err, result) {
+						//speaker diarization in json object array of segments
+				    	// callback(null, result);
+				    	var uid = result['data']['recording'][0]['$']['id'];
+				    	cb(uid);
+					});   
+
+
+				 	// return body;
+				 }else{
+				  	return body;
+				 }	  
+		})
+	}
+
+
+	/** 
+	* To send a new recording to spoken data speech to text api, 
+	* by passing the the video file with multiform put request
+	* returns recording uid, which needs to be stored to be able to retrieve the srt of the recording once it has been processed.
+	*/
+	this.addNewRecording = function(fileName, cb){
+		var url= this.baseApiRequest+"/recording/put?filename="+fileName+"&language=english";
+		// postRequest(url,fileNameTest);
+		//TODO: parse XML response return uid of file
+		////////////////////////
+		async.waterfall([
+		    function(callback) {
+		        callback(null, url,fileNameTest);
+		    },
+		    function( url,fileNameTest, callback) {
+		       // arg1 now equals 'one' and arg2 now equals 'two'
+		       // postRequest(url,fileNameTest);
+		       postRequest(url,fileNameTest, function (result){
+					// console.log("result");
+		       		// console.log(result);
+		       		callback(null,result);
+		       });
+		    },
+		    function(xml, callback) {
+		        // arg1 now equals 'three'
+		        parseString(xml, function (err, result) {
+					//gets the UID of the recording  
+					var uid = result['data']['recording'][0]['$']['id'];
+				    callback(null, uid);
+				});   
+		    },
+		    function(response, callback) {
+		        // console.log("resp");		       
+		        // console.log(response);
+		 		callback(null, response);
+		    }
+			], function (err, result) {
+				// console.log("we are here!");
+		  		// console.log(result);
+		  		//if there is a callback to save UID
+		  		 if (arguments.length > 1){
+				  	cb(result);
+				 	// return body;
+				 }else{
+				  	return result;
+				 }	  
+		});
+		////////////////////////
+	}//
+
+
+	/**
+	* Checks if recording has been processed. 
+	* takes in uid as param
+	* this method is used before retrieving srt(transcription) or xml(speaker diarization) of recording to check that those are available
+	*/
+	this.checkRecordingStatus = function(uid, cb){
+		// if(arguments.length > 1){
+		// 	// console.log("true");
+		// 	// console.log(arguments[0]);
+		// 	cbisPresent = true;
+		// }else{
+		// 	// console.log("false");
+		// 	// console.log(arguments[0]);
+		// 	cbisPresent = false;
+		// }
+
+		var url = this.getRecordingURL(uid);
+		//TODO: req to check if rec as been processed
+		request(url, function (error, response, body) {
+					  if (!error && response.statusCode == 200) {
+					 	// callback(null, body);
+					 	// console.log("body");	
+					 	parseString(body, function (err, result) {
+							//speaker diarization in json object array of segments
+					    	// callback(null, result);
+					    	// console.log(JSON.stringify(result));
+					    	var status =  result['data']['recording'][0]['status'][0];
+					    	if(status == "failed"){
+					    		// console.log("status "+status);
+					    		// if(cbisPresent){
+					    			return cb(status);
+					    			// return cb(false);
+					    		// }else{
+					    		// 	return status;
+					    		// }
+					    			
+					    	}else if(status == "done"){
+					    		// console.log("status "+status);
+					    		// if(cbisPresent){
+					    			return cb(status);
+					    			// return cb(true);
+					    		// }else{
+					    		// 	return status;
+					    		// }
+					    	}else if (status =="processing"){
+					    		// console.log("status "+status);
+					    		// if(cbisPresent){
+					    			return cb(status);
+					    			// return cb(false);
+					    		// }else{
+					    			// return status;
+					    		// }
+					    	}else{
+					    		// console.log("status "+status);
+					    		return status;
+					   			//ERROR?!
+					    	}
+					    	
+						});   
+					 	// console.log(body);		   
+					  }//if
+					}//anonimous function handling response
+				);
+	}
+
+	/**
+	* srt returned as a string
+	*/
 	this.getRecordingSRTURL = function(uid){
 		var url = this.baseApiRequest + this.ENDPOINTS['recording'] +"/"+uid+"/subtitles.srt"
 		return url;
 	}
 
-	//from uid srt fetched, parsed and returned as a hypertranscript json
+	/**
+	* from uid srt fetched, parsed and returned as a json hypertranscript 
+	*/
 	this.getRecordingSRT = function(uid){
 		var uid = uid;
 		var url = this.getRecordingSRTURL(uid);
@@ -94,14 +274,18 @@ function SpokenDataAPI() {
 
 		
 
-	//srt returned as a xml, with speaker diarization
-	//TODO: should probably parse xml and returns it as a json
+	/**
+	* builds the url to retrieve the recording info as xml, which containes speaker diarization info.
+	*/
 	this.getRecordingXMLURL = function(uid){
 		var url = this.baseApiRequest + this.ENDPOINTS['recording'] +"/"+uid+"/subtitles.xml"
 		return url;
 	}
 
-
+	/**
+	* srt returned as a xml, with speaker diarization
+	* TODO: should probably parse xml and returns it as a json for consistency
+	*/
 	this.getRecordingXML = function(uid){
 		var uid = uid;
 		var url = this.getRecordingXMLURL(uid);
@@ -115,6 +299,7 @@ function SpokenDataAPI() {
 		    	//open url
 				request(url, function (error, response, body) {
 					  if (!error && response.statusCode == 200) {
+					 	
 					 	callback(null, body);		   
 					  }//if
 					}//anonimous function handling response
@@ -144,18 +329,154 @@ function SpokenDataAPI() {
 		});			
 	}
 
+	/**
+	* Retrieves hypertranscript(json) of srt transcription
+	* uses uid param to retrieve it.
+	* first checks if the recording has been processed.
+	* if status is not 'done' then function returns false.
+	* if it is 'done' then it retrieves the srt
+	* this is returned as json by `getRecordingSRT` function
+	*/
+	this.getTranscription = function(uid){
+		this.checkRecordingStatus(uid, function (resp){
+			// console.log(resp);
+			if(resp=="done"){
+				SpokenData.getRecordingSRT(uid);
+			}else{
+				console.log(false);
+				return false;
+			}
+		});
+	}
 
+	/**
+	* Retrieves hash of speaker diarization
+	* uses uid param to retrieve it.
+	* first checks if the recording has been processed.
+	* if status is not 'done' then function returns false.
+	* if it is 'done' then it retrieves the speaker diarization xml
+	* this is returned as json by `getRecordingXML` function
+	*/
+	this.getSpeakerDiarization = function(uid){
+		this.checkRecordingStatus(uid, function (resp){
+			// console.log(resp);
+			if(resp=="done"){
+				SpokenData.getRecordingXML(uid);
+			}else{
+				console.log(false);
+				return false;
+			}
+		});
+	}
 
+	/**
+	* provided uid, returns url of spoken data store video file
+	* helper method for getvideoUrl
+	*/
+	this.getVideoUrlSpkFile = function(uid, cb){
 
-	//returns recording uid
-	this.addNewRecordingURL = function(recordingURL){
-		var url = this.baseApiRequest + this.ENDPOINTS['recording'] +"/"+"add?url="+recordingURL+"&language=english"	
-		return url;
-	}//addNewRecordingURL
+		var url = this.getRecordingURL(uid);
+		//TODO: req to check if rec as been processed
+		request(url, function (error, response, body) {
+					  if (!error && response.statusCode == 200) {
+					 	// callback(null, body);
+					 	// console.log("body");	
+					 	parseString(body, function (err, result) {
+							//speaker diarization in json object array of segments
+					    	// callback(null, result);
+					    	var status =  result['data']['recording'][0]['video_url'][0];				   	
+							cb(status);
+						});   
+					 	// console.log(body);		   
+					  }//if
+					}//anonimous function handling response
+				);
+	}
+
+	/**
+	* get video_url
+	* first checks video status
+	* if it's not been processed return false
+	*/
+	this.getvideoUrl = function(uid, cb){
+		if(arguments.length >=1){
+			hasCallback =true;
+		}else{
+			hasCallback = false;
+		}
+
+		this.checkRecordingStatus(uid, function (resp){
+			// console.log(resp);
+			if(resp=="done"){
+				SpokenData.getVideoUrlSpkFile(uid, function (r){
+					// console.log(r);
+					// console.log(arguments.length);
+					if(hasCallback){
+						cb(r);
+					}else{
+						return r;
+					}
+				});
+			}else{
+				console.log(false);
+				return false;
+			}
+		});
+	}
+	
+
 
 }//end of spoken data object
 
 
+/**
+* Helper method converts, `processing, done, failed`
+* to true or false.
+*/
+function interpretStatus (status){
+	if(status == "processing"){
+		return true;
+	}else if(status =="failed"){
+		return false;
+	}else if(status == "done"){
+		return false;
+	}
+}
+
+/** 
+* Put request to send a file 
+* helper method for addNewRecording
+*/
+//TODO: fileName and `__dirname` need to be changed to filePath.
+function postRequest(postUrl, fileName, callback){
+
+	var formData = {
+	  // Pass data via Streams
+	  my_file: fs.createReadStream(__dirname + '/'+fileName),
+	};
+	//request.put
+	request.put({url:postUrl, formData: formData}, function optionalCallback(err, httpResponse, body) {
+	  console.log(httpResponse.statusCode);
+	  console.log(body);
+	  if (err) {
+	    return console.error('upload failed:', err);
+	  }
+	  // console.log('Server responded with:', body);
+	  // checks if callback has been passed to the function
+	  //if it has been passed then pass body as argument to callback.
+	  if (arguments.length >= 2){
+	  	console.log("body");
+	  	callback(body);
+	 	// return body;
+	  }else{
+	  	console.log("else");
+	  	return body;
+	  }	  
+	});
+}//postRequest
+
+
+///////////////////////////////
 
 
 SpokenData = new SpokenDataAPI(); 	
@@ -164,18 +485,109 @@ SpokenData = new SpokenDataAPI();
 // console.log(SpokenData.getRecordingsListURL());
 
 //contains all the info
-// console.log(SpokenData.getRecordingURL(6107));
+// console.log(SpokenData.getRecordingURL(7879));
+// console.log(SpokenData.getRecordingURL(7880));
+// SpokenData.checkRecordingStatus(7914, function(resp){
+// 	console.log(resp);
+// });
+
+
+SpokenData.getvideoUrl(7150, function (resp){
+	console.log(resp);
+});
+
+
+
+// SpokenData.checkRecordingStatus(7914, function (resp){
+// 	// console.log(resp);
+// 	if(resp=="done"){
+// 		SpokenData.getRecordingSRT(7880);
+// 	}else{
+// 		console.log(false);
+// 		return false
+// 	}
+// });
+
+// getvideoUrl
+
+// SpokenData.checkRecordingStatus(7147, function (resp){
+// 	console.log(resp);
+// 	if(resp=="done"){
+// 		SpokenData.getRecordingSRT(7147);
+// 	}else{
+// 		console.log(false);
+// 		return false;
+// 	}
+// });
+
+// SpokenData.checkRecordingStatus(7880, function (resp){
+// 	// console.log(resp);
+// 	if(resp=="done"){
+// 		SpokenData.getRecordingSRT(7880);
+// 	}else{
+// 		console.log(false);
+// 		return false
+// 	}
+// });
+
+// SpokenData.checkRecordingStatus(7879, function (resp){
+// 	// console.log(resp);
+// 	if(resp=="done"){
+// 		SpokenData.getRecordingXML(7879);
+// 	}else{
+// 		console.log(false);
+// 		return false;
+// 	}
+// });
+
+// SpokenData.checkRecordingStatus(6834, function (resp){
+// 	// console.log(resp);
+// 	if(resp=="done"){
+// 		// SpokenData.getRecordingXML(6834);
+// 	}else{
+// 		console.log(false);
+// 		return false;
+// 	}
+// });
+
+// SpokenData.checkRecordingStatus(6834, function (resp){
+// 	// console.log(resp);
+// 	if(resp=="done"){
+// 		// SpokenData.getRecordingXML(6834);
+// 	}else{
+// 		console.log(false);
+// 		return false;
+// 	}
+// });
+
+
+// SpokenData.getvideoUrl(7879);
+
+// SpokenData.getvideoUrl(6834);
+
+
 
 //if recording available returns srt otherwise returns that is being processed
+// SpokenData.getRecordingSRT(7878);
+
+
 // SpokenData.getRecordingSRT(6107);
 
-
-SpokenData.getRecordingSRT(6107);
-
 //returns speaker diarization 
-// console.log(SpokenData.getRecordingXML(6107));
-SpokenData.getRecordingXML(6107);
+// console.log(SpokenData.getRecordingXML(7878));
+// SpokenData.getRecordingXML(7878);
 
+//test add new recording by file
+var fileNameTest='twit_export.mp4';
+// SpokenData.addNewRecording(fileNameTest, function (resp){
+// 	console.log(resp);
+// });
+
+//add new recording by URL
+var url = "https://youtu.be/vLX7ActLx_U";
+// SpokenData.addNewRecordingByURL(url, function (resp){
+// 	console.log(resp);
+// });
 
 
 
