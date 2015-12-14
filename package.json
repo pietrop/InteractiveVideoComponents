@@ -4,9 +4,12 @@
   "description": "A collection of node modules that can be used on video projects, centred a round the idea of hypertranscript as a way into the content of the video",
   "main": "app.js",
   "dependencies": {
+    "async": "^1.5.0",
     "ejs": "^2.3.4",
     "express": "^4.13.3",
     "fluent-ffmpeg": "~1.7",
+    "request": "^2.67.0",
+    "subtitles-parser": "0.0.2",
     "twit": "2.1.1",
     "twitter-media": "0.1.0",
     "xml2js": "^0.4.15"
