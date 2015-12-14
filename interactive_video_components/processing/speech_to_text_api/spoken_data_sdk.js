@@ -180,7 +180,9 @@ function SpokenDataAPI() {
 							//speaker diarization in json object array of segments
 					    	// callback(null, result);
 					    	// console.log(JSON.stringify(result));
-					    	var status =  result['data']['recording'][0]['status'][0];
+                // TODO: I commented out this but no idea why you were using it
+					    	//var status =  result['data']['recording'][0]['status'][0];
+                var status = 'done';
 					    	if(status == "failed"){
 					    		// console.log("status "+status);
 					    		// if(cbisPresent){
@@ -384,7 +386,9 @@ function SpokenDataAPI() {
 					 	parseString(body, function (err, result) {
 							//speaker diarization in json object array of segments
 					    	// callback(null, result);
-					    	var status =  result['data']['recording'][0]['video_url'][0];				   	
+                // TODO: I commented out this but no idea why you were using it
+					    	//var status =  result['data']['recording'][0]['video_url'][0];				   	
+                var status = 'done';
 							cb(status);
 						});   
 					 	// console.log(body);		   
@@ -449,13 +453,12 @@ function interpretStatus (status){
 */
 //TODO: fileName and `__dirname` need to be changed to filePath.
 function postRequest(postUrl, fileName, callback){
-
-	var formData = {
-	  // Pass data via Streams
-	  my_file: fs.createReadStream(__dirname + '/'+fileName),
-	};
+  var fpath = __dirname + '/' + fileName;
+  var fstat = fs.statSync(fpath);
+  var fsize = fstat['size'];
+	
 	//request.put
-	request.put({url:postUrl, formData: formData}, function optionalCallback(err, httpResponse, body) {
+	var req = request.put(postUrl, {headers: { 'content-length': fsize }}, function optionalCallback(err, httpResponse, body) {
 	  console.log(httpResponse.statusCode);
 	  console.log(body);
 	  if (err) {
@@ -473,6 +476,7 @@ function postRequest(postUrl, fileName, callback){
 	  	return body;
 	  }	  
 	});
+  fs.createReadStream(fpath).pipe(req);
 }//postRequest
 
 
@@ -579,9 +583,9 @@ SpokenData.getvideoUrl(7150, function (resp){
 
 //test add new recording by file
 var fileNameTest='twit_export.mp4';
-// SpokenData.addNewRecording(fileNameTest, function (resp){
-// 	console.log(resp);
-// });
+SpokenData.addNewRecording(fileNameTest, function (resp){
+  console.log(resp);
+});
 
 //add new recording by URL
 var url = "https://youtu.be/vLX7ActLx_U";
