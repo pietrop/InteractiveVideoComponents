@@ -396,7 +396,7 @@ function SpokenDataAPI() {
 					    	//var status =  result['data']['recording'][0]['video_url'][0];				   	
                				 // var status = 'done';
 							cb(JSON.stringify(result['data']['recording'][0]['video_url'][0]));
-						});   
+					});   
 					 	// console.log(body);		   
 					  }//if
 					}//anonimous function handling response
@@ -558,7 +558,6 @@ module.exports = {
 };
 
 
-// exports.version = "1.0.0";
 
 
 
