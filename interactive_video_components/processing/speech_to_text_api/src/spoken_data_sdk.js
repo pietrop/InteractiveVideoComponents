@@ -116,12 +116,12 @@ function SpokenDataAPI() {
 		////////////////////////
 		async.waterfall([
 		    function(callback) {
-		        callback(null, url,fileNameTest);
+		        callback(null, url,fileName);
 		    },
-		    function( url,fileNameTest, callback) {
+		    function( url,fileName, callback) {
 		       // arg1 now equals 'one' and arg2 now equals 'two'
 		       // postRequest(url,fileNameTest);
-		       postRequest(url,fileNameTest, function (result){
+		       postRequest(url,fileName, function (result){
 					// console.log("result");
 		       		// console.log(result);
 		       		callback(null,result);
@@ -233,7 +233,7 @@ function SpokenDataAPI() {
 	/**
 	* from uid srt fetched, parsed and returned as a json hypertranscript 
 	*/
-	this.getRecordingSRT = function(uid){
+	this.getRecordingSRT = function(uid, c){
 		var uid = uid;
 		var url = this.getRecordingSRTURL(uid);
 		async.waterfall([
@@ -272,6 +272,7 @@ function SpokenDataAPI() {
 			// console.log(result);
 			//TODO: save to db here
 			// console.log(result);
+			c(result);
 		    return result;
 		});			
 	}
@@ -501,16 +502,18 @@ var UID = 6160
 // console.log("http://147.229.8.44/glocal/data/70-20150902-004052-977-000794-CyOvRHJWYa/steps/020/out/04_webbrowser/video_HD.mp4")
 
 
-//GET SRT String FILE FROM UID w-t callback to shtat can save - RETURNS AS JSON Hypertranscript
+////GET SRT String FILE FROM UID w-t callback to shtat can save - RETURNS AS JSON Hypertranscript
 // SpokenData.getTranscription(UID, function (d){
-// 	console.log("HyperTranscript");
-// 	console.log(d);
+	// console.log("HyperTranscript");
+	// fs.writeFileSync("test.json", JSON.stringify(d), 'utf8');
+	// console.log(d);
 // });
 
 
-// //GET XML of Speaker diarization - Returned as JSON.
+//GET XML of Speaker diarization - Returned as JSON.
 // SpokenData.getSpeakerDiarization(UID, function (d){
 // 	console.log("Speaker Diarization");
+// fs.writeFileSync("test.json", JSON.stringify(d), 'utf8');
 // 	console.log(d);
 // });
 
@@ -544,13 +547,13 @@ module.exports = {
   	//returns json of speaker diarization
     return SpokenData.getSpeakerDiarization(uid,cb);
   },
-   addNewRecording : function(uid,cb){
+   addNewRecording : function(fileName,cb){
   	//returns json of speaker diarization
-    return SpokenData.addNewRecording(uid,cb);
+    return SpokenData.addNewRecording(fileName,cb);
   },
-   addNewRecordingByURL : function(uid,cb){
+   addNewRecordingByURL : function(fileURL,cb){
   	//returns json of speaker diarization
-    return SpokenData.addNewRecordingByURL(uid,cb);
+    return SpokenData.addNewRecordingByURL(fileURL,cb);
   },
   version: function(){
   	return "1.0.0";
