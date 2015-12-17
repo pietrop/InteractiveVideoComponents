@@ -1,11 +1,12 @@
-// spoken_data_sdk.js
-// look at implementation of ruby version
-//needs to be initialised with keys
-//send video - returns UID
-
-//also contains method to retrieve speaker diarizaiton
-//this is retrieved as a json that is appended to hypertranscript under hypertranscript.speakerdiarization
-
+/**
+* spoken_data_sdk.js 16-12-2015
+* look at implementation of ruby version
+* needs to be initialised with keys
+* send video - returns UID
+*
+* also contains method to retrieve speaker diarizaiton
+* this is retrieved as a json that is appended to hypertranscript under hypertranscript.speakerdiarization
+*/
 
 //TODO need to add errors if api not responding
 
@@ -14,9 +15,9 @@ var fs = require('fs');
 var async = require("async")
 var parseString = require('xml2js').parseString;
 var request = require('request');
-var srt_to_hypertranscript = require('../srt_to_hypertranscript')
+var srt_to_hypertranscript = require('../../srt_to_hypertranscript')
 //config contains API keys
-var config = require('../../../config');
+var config = require('../../../../config');
 
 var locationWhereToSaveSrtFiles="./"
 
@@ -180,7 +181,9 @@ function SpokenDataAPI() {
 							//speaker diarization in json object array of segments
 					    	// callback(null, result);
 					    	// console.log(JSON.stringify(result));
-					    	var status =  result['data']['recording'][0]['status'][0];
+                // TODO: I commented out this but no idea why you were using it
+					    	//var status =  result['data']['recording'][0]['status'][0];
+                var status = 'done';
 					    	if(status == "failed"){
 					    		// console.log("status "+status);
 					    		// if(cbisPresent){
@@ -262,12 +265,13 @@ function SpokenDataAPI() {
 				// and needs to take in object with basic transcript info.
 		        var hpypertranscript_json= srt_to_hypertranscript.convert(srtFileName)
 		        // console.log(hpypertranscript_json);
+		        //TODO: delete srtFileName?
 		        callback(null, hpypertranscript_json);
 		    }
 		], function (err, result) {
 			// console.log(result);
 			//TODO: save to db here
-			console.log(result);
+			// console.log(result);
 		    return result;
 		});			
 	}
@@ -324,7 +328,7 @@ function SpokenDataAPI() {
 			//or append to hypertranscript?
 			//TODO: combine: get recording srt, make hypertranscript.
 			//then get speaker diarization and add to hypertranscript
-			console.log(result);
+			// console.log(result);
 		    return result;
 		});			
 	}
@@ -337,13 +341,15 @@ function SpokenDataAPI() {
 	* if it is 'done' then it retrieves the srt
 	* this is returned as json by `getRecordingSRT` function
 	*/
-	this.getTranscription = function(uid){
+	this.getTranscription = function(uid, cb){
 		this.checkRecordingStatus(uid, function (resp){
 			// console.log(resp);
 			if(resp=="done"){
-				SpokenData.getRecordingSRT(uid);
+				SpokenData.getRecordingSRT(uid,function (r){
+					cb(r);
+				});
 			}else{
-				console.log(false);
+				// console.log(false);
 				return false;
 			}
 		});
@@ -357,13 +363,15 @@ function SpokenDataAPI() {
 	* if it is 'done' then it retrieves the speaker diarization xml
 	* this is returned as json by `getRecordingXML` function
 	*/
-	this.getSpeakerDiarization = function(uid){
+	this.getSpeakerDiarization = function(uid, cb){
 		this.checkRecordingStatus(uid, function (resp){
 			// console.log(resp);
 			if(resp=="done"){
-				SpokenData.getRecordingXML(uid);
+				SpokenData.getRecordingXML(uid, function(r){
+					cb(r);
+				});
 			}else{
-				console.log(false);
+				// console.log(false);
 				return false;
 			}
 		});
@@ -384,8 +392,10 @@ function SpokenDataAPI() {
 					 	parseString(body, function (err, result) {
 							//speaker diarization in json object array of segments
 					    	// callback(null, result);
-					    	var status =  result['data']['recording'][0]['video_url'][0];				   	
-							cb(status);
+                // TODO: I commented out this but no idea why you were using it
+					    	//var status =  result['data']['recording'][0]['video_url'][0];				   	
+               				 // var status = 'done';
+							cb(JSON.stringify(result['data']['recording'][0]['video_url'][0]));
 						});   
 					 	// console.log(body);		   
 					  }//if
@@ -418,7 +428,7 @@ function SpokenDataAPI() {
 					}
 				});
 			}else{
-				console.log(false);
+				// console.log(false);
 				return false;
 			}
 		});
@@ -449,15 +459,14 @@ function interpretStatus (status){
 */
 //TODO: fileName and `__dirname` need to be changed to filePath.
 function postRequest(postUrl, fileName, callback){
-
-	var formData = {
-	  // Pass data via Streams
-	  my_file: fs.createReadStream(__dirname + '/'+fileName),
-	};
+  var fpath = __dirname + '/' + fileName;
+  var fstat = fs.statSync(fpath);
+  var fsize = fstat['size'];
+	
 	//request.put
-	request.put({url:postUrl, formData: formData}, function optionalCallback(err, httpResponse, body) {
-	  console.log(httpResponse.statusCode);
-	  console.log(body);
+	var req = request.put(postUrl, {headers: { 'content-length': fsize }}, function optionalCallback(err, httpResponse, body) {
+	  // console.log(httpResponse.statusCode);
+	  // console.log(body);
 	  if (err) {
 	    return console.error('upload failed:', err);
 	  }
@@ -465,140 +474,83 @@ function postRequest(postUrl, fileName, callback){
 	  // checks if callback has been passed to the function
 	  //if it has been passed then pass body as argument to callback.
 	  if (arguments.length >= 2){
-	  	console.log("body");
+	  	// console.log("body");
 	  	callback(body);
 	 	// return body;
 	  }else{
-	  	console.log("else");
+	  	// console.log("else");
 	  	return body;
 	  }	  
 	});
+  fs.createReadStream(fpath).pipe(req);
 }//postRequest
 
 
-///////////////////////////////
+/////////////////////////////// TESTS ///////////////////////////////
 
 
 SpokenData = new SpokenDataAPI(); 	
 
-//a list of recordings on 
-// console.log(SpokenData.getRecordingsListURL());
-
-//contains all the info
-// console.log(SpokenData.getRecordingURL(7879));
-// console.log(SpokenData.getRecordingURL(7880));
-// SpokenData.checkRecordingStatus(7914, function(resp){
+var UID = 6160
+//GET VIDEO URL MP4 TRANSCODED AND STORED ON SPOKEN DATA
+// SpokenData.getvideoUrl(UID, function (resp){
+// 	console.log("Video URL ");
 // 	console.log(resp);
 // });
 
-
-SpokenData.getvideoUrl(7150, function (resp){
-	console.log(resp);
-});
+// console.log("http://147.229.8.44/glocal/data/70-20150902-004052-977-000794-CyOvRHJWYa/steps/020/out/04_webbrowser/video_HD.mp4")
 
 
-
-// SpokenData.checkRecordingStatus(7914, function (resp){
-// 	// console.log(resp);
-// 	if(resp=="done"){
-// 		SpokenData.getRecordingSRT(7880);
-// 	}else{
-// 		console.log(false);
-// 		return false
-// 	}
-// });
-
-// getvideoUrl
-
-// SpokenData.checkRecordingStatus(7147, function (resp){
-// 	console.log(resp);
-// 	if(resp=="done"){
-// 		SpokenData.getRecordingSRT(7147);
-// 	}else{
-// 		console.log(false);
-// 		return false;
-// 	}
-// });
-
-// SpokenData.checkRecordingStatus(7880, function (resp){
-// 	// console.log(resp);
-// 	if(resp=="done"){
-// 		SpokenData.getRecordingSRT(7880);
-// 	}else{
-// 		console.log(false);
-// 		return false
-// 	}
-// });
-
-// SpokenData.checkRecordingStatus(7879, function (resp){
-// 	// console.log(resp);
-// 	if(resp=="done"){
-// 		SpokenData.getRecordingXML(7879);
-// 	}else{
-// 		console.log(false);
-// 		return false;
-// 	}
-// });
-
-// SpokenData.checkRecordingStatus(6834, function (resp){
-// 	// console.log(resp);
-// 	if(resp=="done"){
-// 		// SpokenData.getRecordingXML(6834);
-// 	}else{
-// 		console.log(false);
-// 		return false;
-// 	}
-// });
-
-// SpokenData.checkRecordingStatus(6834, function (resp){
-// 	// console.log(resp);
-// 	if(resp=="done"){
-// 		// SpokenData.getRecordingXML(6834);
-// 	}else{
-// 		console.log(false);
-// 		return false;
-// 	}
+//GET SRT String FILE FROM UID w-t callback to shtat can save - RETURNS AS JSON Hypertranscript
+// SpokenData.getTranscription(UID, function (d){
+// 	console.log("HyperTranscript");
+// 	console.log(d);
 // });
 
 
-// SpokenData.getvideoUrl(7879);
+// //GET XML of Speaker diarization - Returned as JSON.
+// SpokenData.getSpeakerDiarization(UID, function (d){
+// 	console.log("Speaker Diarization");
+// 	console.log(d);
+// });
 
-// SpokenData.getvideoUrl(6834);
-
-
-
-//if recording available returns srt otherwise returns that is being processed
-// SpokenData.getRecordingSRT(7878);
-
-
-// SpokenData.getRecordingSRT(6107);
-
-//returns speaker diarization 
-// console.log(SpokenData.getRecordingXML(7878));
-// SpokenData.getRecordingXML(7878);
-
-//test add new recording by file
-var fileNameTest='twit_export.mp4';
+//UPLOAD VIDEO - POST REQUEST video file
+// var fileNameTest='../twit_export.mp4';
 // SpokenData.addNewRecording(fileNameTest, function (resp){
-// 	console.log(resp);
+//   console.log(resp);
 // });
 
-//add new recording by URL
-var url = "https://youtu.be/vLX7ActLx_U";
+
+//UPLOAD VIDEO - Through URL - Returns UID so that it can be saved in db to check and retrieve when it has been processed.
+// var url = "https://youtu.be/iG9CE55wbtY";
 // SpokenData.addNewRecordingByURL(url, function (resp){
 // 	console.log(resp);
 // });
 
+/////////////////////////////// END TEST ///////////////////////////////
 
+/////////////////////////////// INTERFACE //////////////////////////////
 
 module.exports = {
-    hypertranscript : function(uid){
-    	//returns json of hypertranscript
-    return SpokenData.getRecordingSRT(uid);
-  },
-  speakerdiarization : function(uid){
+   getvideoUrl : function(uid,cb){
   	//returns json of speaker diarization
-    return SpokenData.getRecordingXML(uid);
+    return SpokenData.getvideoUrl(uid,cb);
+  },
+   getTranscription : function(uid,cb){
+    	//returns json of hypertranscript
+    return SpokenData.getTranscription(uid,cb);
+  },
+  getSpeakerDiarization : function(uid,cb){
+  	//returns json of speaker diarization
+    return SpokenData.getSpeakerDiarization(uid,cb);
+  },
+   addNewRecording : function(uid,cb){
+  	//returns json of speaker diarization
+    return SpokenData.addNewRecording(uid,cb);
+  },
+   addNewRecordingByURL : function(uid,cb){
+  	//returns json of speaker diarization
+    return SpokenData.addNewRecordingByURL(uid,cb);
   },
   version: function(){
   	return "1.0.0";
@@ -607,7 +559,6 @@ module.exports = {
 
 
 // exports.version = "1.0.0";
-
 
 
 
