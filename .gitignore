@@ -16,6 +16,10 @@ config.js
 *.ogg
 *.webm
 
+
+#audio files
+*.wav
+
 #ignore subtitles files
 *.srt
 *.sbv
