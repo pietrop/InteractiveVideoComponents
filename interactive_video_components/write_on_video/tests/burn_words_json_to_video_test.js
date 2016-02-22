@@ -5,7 +5,7 @@ var burner = require('../burn_words_json_to_video')
 //milliseconds
 var words = [{
 		start: 0,
-	    end: 200, 
+	    end: 200,
 	    text: "Call"
 	},
 	{
@@ -29,7 +29,7 @@ var words = [{
 	     text: "years"
 	},{
 		start: 1200,
-	    end: 1500, 
+	    end: 1500,
 	    text: "ago"
 	},
 	{
@@ -70,6 +70,6 @@ var words = [{
 	}
 ];
 
-var src = "./debate_test_trimmed.mp4"; 
+var src = "./debate_test_trimmed2.mp4"; 
 var output= "test_output.mp4";
 burner.convert(words,src,output);

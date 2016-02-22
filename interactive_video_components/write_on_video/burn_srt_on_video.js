@@ -10,7 +10,7 @@ var Path = require('path');
 /**
 * src: file path of video, with file name
 * srt: file path of srt file with file name
-* output: file path of 
+* output: file path of
 */
 function burn_text(src,srt,output, cb){
 
@@ -20,7 +20,9 @@ function burn_text(src,srt,output, cb){
 // var ffmpeg = spawn(Path.join(__dirname, 'videogrep_standalone/ffmpeg'), ['-y', '-i', path, '-acodec', 'pcm_s16le', '-ac', '1', '-ar', '16000', new_name]);
 	//TODO: temp.srt needs to be a variable
 	// var subtitle =  'subtitles=temp.srt';
-	var subtitle =  "subtitles="+srt;
+	var subtitle =  "subtitles="+srt+":force_style='FontName=DejaVu Serif,FontSize=42'"
+
+	// +":force_style='FontName=DejaVu Serif,PrimaryColour=&HAA00FF00'";
 	var ffmpeg = spawn(Path.join('ffmpeg'), ['-y', '-i', src, '-vf', subtitle,  output]);
 
 	ffmpeg.stdout.on('data', function(data) {
@@ -34,7 +36,7 @@ function burn_text(src,srt,output, cb){
 	ffmpeg.on('close', function(code) {
 	    console.log('finished converting');
 	    if(cb){cb}
-	});	
+	});
 }
 
 //export
@@ -43,3 +45,7 @@ module.exports = {
     return burn_text(src, srt,output);
   }
 };
+
+
+
+// https://stackoverflow.com/questions/21363334/how-to-add-font-size-in-subtitles-in-ffmpeg-video-filter

@@ -1,0 +1,14 @@
+{
+  "name": "write_on_video",
+  "version": "1.0.0",
+  "description": "a module to burn text (as a array of word objects) onto a video",
+  "main": "burn_srt_on_video.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Pietro Passarelli",
+  "license": "ISC"
+}

@@ -1,7 +1,7 @@
 // to export to twitter video API
 //Dan's version, needs refactoring
-// TODO: should take in video file name and src; 
-// text to post in body of tweet. 
+// TODO: should take in video file name and src;
+// text to post in body of tweet.
 // autenthicate the application
 // autenthicate the user
 //TODO: To tweet on behalf of user, needs passportjs twitter auth strategy.
@@ -43,9 +43,9 @@ var tweet_video = function(text,videoFile){
 
 }
 
-////to test function
+//to test function
 // var status     =   "Testing Twitter Video API";
-// var videoFile  =   "output_debate_test.mp4";
+// var videoFile  =   "test_output.mp4";
 // tweet_video(status, videoFile);
 
 module.exports = {
@@ -53,4 +53,3 @@ module.exports = {
     return tweet_video(status, videoFile);
   }//,
 };
-
