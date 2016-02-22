@@ -7,7 +7,10 @@ var spawn = require('child_process').spawn;
 */
 
 function transcribe(path, cb) {
+  // var fileAr = path.split("/");//
+  // var file = fileAr[fileAr.length-1];//
   var new_name = path + '.temp.wav';
+                                                                                                                   // taking in left audio channel
   var ffmpeg = spawn(Path.join(__dirname, './standalone/ffmpeg'), ['-y', '-i', path, '-acodec', 'pcm_s16le', '-ac', '1', '-ar', '16000', new_name]);
 
   ffmpeg.stdout.on('data', function(data) {
@@ -26,6 +29,7 @@ function transcribe(path, cb) {
 */
 
 function pocketSphinx(path, cb) {
+  // var wavFileName = path; //'.temp.wav'
   var filename = path.replace('.temp.wav', '') + '.transcription.txt';
   var args = [
     '-infile', path,
@@ -34,16 +38,16 @@ function pocketSphinx(path, cb) {
     '-vad_prespeech', '10',
     '-vad_postspeech', '50',
     '-feat', '1s_c_d_dd	1s_c_d_dd',
-    '-dict', Path.join(__dirname, 'pocketsphinx/share/pocketsphinx/model/en-us/cmudict-en-us.dict'),
-    '-fdict', Path.join(__dirname, 'pocketsphinx/share/pocketsphinx/model/en-us/en-us/noisedict'),
+    '-dict', Path.join(__dirname,       'pocketsphinx/share/pocketsphinx/model/en-us/cmudict-en-us.dict'),
+    '-fdict', Path.join(__dirname,      'pocketsphinx/share/pocketsphinx/model/en-us/en-us/noisedict'),
     '-featparams', Path.join(__dirname, 'pocketsphinx/share/pocketsphinx/model/en-us/en-us/feat.params'),
-    '-hmm', Path.join(__dirname, 'pocketsphinx/share/pocketsphinx/model/en-us/en-us'),
-    '-lm', Path.join(__dirname, 'pocketsphinx/share/pocketsphinx/model/en-us/en-us.lm.bin'),
-    '-mdef', Path.join(__dirname, 'pocketsphinx/share/pocketsphinx/model/en-us/en-us/mdef'),
-    '-mean', Path.join(__dirname, 'pocketsphinx/share/pocketsphinx/model/en-us/en-us/means'),
-    '-sendump', Path.join(__dirname, 'pocketsphinx/share/pocketsphinx/model/en-us/en-us/sendump'),
-    '-tmat', Path.join(__dirname, 'pocketsphinx/share/pocketsphinx/model/en-us/en-us/transition_matrices'),
-    '-var', Path.join(__dirname, 'pocketsphinx/share/pocketsphinx/model/en-us/en-us/variances')
+    '-hmm', Path.join(__dirname,        'pocketsphinx/share/pocketsphinx/model/en-us/en-us'),
+    '-lm', Path.join(__dirname,         'pocketsphinx/share/pocketsphinx/model/en-us/en-us.lm.bin'), //
+    '-mdef', Path.join(__dirname,       'pocketsphinx/share/pocketsphinx/model/en-us/en-us/mdef'),//
+    '-mean', Path.join(__dirname,       'pocketsphinx/share/pocketsphinx/model/en-us/en-us/means'),//
+    '-sendump', Path.join(__dirname,    'pocketsphinx/share/pocketsphinx/model/en-us/en-us/sendump'),//
+    '-tmat', Path.join(__dirname,       'pocketsphinx/share/pocketsphinx/model/en-us/en-us/transition_matrices'),//
+    '-var', Path.join(__dirname,        'pocketsphinx/share/pocketsphinx/model/en-us/en-us/variances')//
   ];
 
   var options = {
@@ -51,7 +55,7 @@ function pocketSphinx(path, cb) {
       'DYLD_LIBRARY_PATH': Path.join(__dirname, 'sphinxbase/lib') + ':' + Path.join(__dirname, 'pocketsphinx/lib/')
     }
   };
-
+  //in linux point this to local pocketsphinx
   var ps = spawn(Path.join(__dirname, 'pocketsphinx/bin/pocketsphinx_continuous'), args, options);
 
   var transcript = '';
@@ -73,6 +77,7 @@ function pocketSphinx(path, cb) {
       console.log('finished writing');
       cb(transcript);
     });
+    //fs.unlinkSync(wavFileName); 
 
   });
   // os.remove(f)
@@ -113,9 +118,10 @@ function convert_transcription(path, cb) {
     if (err) {
       cb(null);
     } else {
-      var sentences = parse_transcription_sentences(data);
+      // var sentences = parse_transcription_sentences(data);
       var words = parse_transcription_words(data);
-      cb([sentences, words]);
+      // cb([sentences, words]);
+      cb(words);
     }
   });
 }
@@ -184,19 +190,30 @@ function parse_transcription_words(data) {
   var lines = data.split('\n');
 
   lines = lines.filter(l => l.search(/\d$/) > -1 && l.search(/NOISE|SPEECH/) === -1 && l[0] != '<');
-  lines.forEach(l => {
-    l = l.trim();
-    l = l.split(' ');
+  
+
+for(var i=0; i<lines.length; i++){
+  // lines.forEach(function (l) {
+    var l = lines[i];
+    console.log("l");
+    console.log(l);//
+    // l = l.trim();
+    var ln = l.split(' ');
+    console.log("ln");
+    console.log(ln);
     var item = {
-      start: parseFloat(l[1]),
-      end: parseFloat(l[2]),
-      text: l[0].replace(/\(\d\)/, '')
+      start: parseFloat(ln[1]),
+      end: parseFloat(ln[2]),
+      accuracy: parseFloat(ln[3]),
+      text: ln[0].replace(/\(\d\)/, '')
     };
+    console.log(item);
     output.push(item);
-  });
-
+  // });
+  }
+  console.log(output);
+  if(cb){cb(output)}
   return output;
-
 }
 
 
